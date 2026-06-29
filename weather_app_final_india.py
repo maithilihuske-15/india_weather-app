@@ -419,14 +419,41 @@ def predict_india(city_name, country_code, india_m):
     for col in feat_cols:
         if col not in rt_df.columns:
             rt_df[col] = 0.0
-    X_rt  = rt_df[feat_cols].values
-    X_sc  = india_m["scaler"].transform(X_rt)
+    X_rt = rt_df[feat_cols].values
+    X_sc = india_m["scaler"].transform(X_rt)
 
-    p_xgb  = india_m["xgboost"].predict(X_sc)
+# ===== DEBUG =====
+    import os
+
+    st.write("Current folder:", os.getcwd())
+
+    st.write("Feature row:")
+    st.dataframe(rt_df)
+
+    st.write("Feature order:")
+    st.write(feat_cols)
+
+    st.write("Scaled values:")
+    st.write(X_sc)
+
+    p_xgb = india_m["xgboost"].predict(X_sc)
     p_lgbm = india_m["lgbm"].predict(X_sc)
-    p_rf   = india_m["randomforest"].predict(X_sc)
-    meta   = np.hstack([p_xgb, p_lgbm, p_rf])
-    pred   = india_m["meta_learner"].predict(meta)[0]
+    p_rf = india_m["randomforest"].predict(X_sc)
+
+    st.write("XGBoost Prediction:", p_xgb)
+    st.write("LightGBM Prediction:", p_lgbm)
+    st.write("RandomForest Prediction:", p_rf)
+
+    meta = np.hstack([p_xgb, p_lgbm, p_rf])
+
+    st.write("Meta Input:")
+    st.write(meta)
+
+    pred = india_m["meta_learner"].predict(meta)[0]
+
+    st.write("Final Prediction:")  
+    st.write(pred)
+# ==================
 
     current = {
         "temp":        data["main"]["temp"],
@@ -445,7 +472,6 @@ def predict_india(city_name, country_code, india_m):
         "air_pressure": round(float(pred[3]), 1),
     }
     return current, prediction, None
-
 
 def india_condition(avg_temp, rainfall, wind_speed):
     if rainfall > 5:                     return "Rainy",  "🌧️"
