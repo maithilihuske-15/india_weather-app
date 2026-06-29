@@ -79,7 +79,7 @@ def get_city_time(city_name, country_code):
         tz      = pytz.timezone(tz_name)
         return datetime.now(tz), tz_name
     except Exception:
-        return datetime.utcnow(), "UTC"
+        return datetime.now(pytz.UTC), "UTC"
 
 
 def generate_smart_forecast(X_input_original, models, feature_cols,
@@ -955,7 +955,11 @@ with col_title:
 with col_time:
     city_now_hdr, tz_name_hdr = get_city_time(city_name, country_code)
     short_tz           = tz_name_hdr.split("/")[-1].replace("_", " ")
-    utc_offset_minutes = int(city_now_hdr.utcoffset().total_seconds() / 60)
+    offset = city_now_hdr.utcoffset()
+    if offset is None:
+        utc_offset_minutes = 0
+    else:
+        utc_offset_minutes = int(offset.total_seconds() / 60)
     st.components.v1.html(f"""
     <div style="text-align:right;padding-top:8px;font-family:'Inter',sans-serif;">
         <div style="font-size:0.68rem;color:#475569;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;">
