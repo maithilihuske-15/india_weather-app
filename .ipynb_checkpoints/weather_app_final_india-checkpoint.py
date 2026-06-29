@@ -428,15 +428,16 @@ def predict_india(city_name, country_code, india_m):
             rt_df[col] = 0.0
     X_rt = rt_df[feat_cols].values
 
-    st.write("Feature values before scaling:")
-    for name, value in zip(feat_cols, X_rt[0]):
-        st.write(f"{name}: {value}")
-        
     X_sc = india_m["scaler"].transform(X_rt)
 
-    st.write("Feature values after scaling:")
-    for name, value in zip(feat_cols, X_sc[0]):
-        st.write(f"{name}: {value}")
+    debug_df = pd.DataFrame({
+        "Feature": feat_cols,
+        "Before Scaling": X_rt[0],
+        "After Scaling": X_sc[0]
+    })
+
+    st.subheader("Debug - Feature Values")
+    st.dataframe(debug_df)
 # ===== DEBUG =====
     import os
 
