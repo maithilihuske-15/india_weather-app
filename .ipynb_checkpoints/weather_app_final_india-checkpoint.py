@@ -415,18 +415,28 @@ def predict_india(city_name, country_code, india_m):
 
     row       = build_india_row(data)
     feat_cols = india_m["feature_cols"]
+
     st.write("Feature columns loaded from feature_columns.pkl:")
     st.write(india_m["feature_cols"])
 
     st.write("Number of features:")
     st.write(len(india_m["feature_cols"]))
+
     rt_df     = pd.DataFrame([row])
     for col in feat_cols:
         if col not in rt_df.columns:
             rt_df[col] = 0.0
     X_rt = rt_df[feat_cols].values
+
+    st.write("Feature values before scaling:")
+    for name, value in zip(feat_cols, X_rt[0]):
+        st.write(f"{name}: {value}")
+        
     X_sc = india_m["scaler"].transform(X_rt)
 
+    st.write("Feature values after scaling:")
+    for name, value in zip(feat_cols, X_sc[0]):
+        st.write(f"{name}: {value}")
 # ===== DEBUG =====
     import os
 
