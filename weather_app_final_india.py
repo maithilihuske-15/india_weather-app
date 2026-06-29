@@ -24,11 +24,14 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from streamlit_autorefresh import st_autorefresh
 
-
+st.write("App started successfully")
 
 random.seed(42)
 np.random.seed(42)
-API_KEY = st.secrets.get("OPENWEATHER_API_KEY", "")
+API_KEY = st.secrets.get("OPENWEATHER_API_KEY", None)
+if not API_KEY:
+    st.error("Missing API key")
+    st.stop()
 
 MODEL_DIR       = "saved_models"
 INDIA_MODEL_DIR = "saved_models_india"
@@ -69,18 +72,21 @@ WEATHER_ICONS = {
 
 def get_city_time(city_name, country_code):
     try:
-        url = (f"https://api.openweathermap.org/data/2.5/weather"
-               f"?q={city_name},{country_code}&appid={API_KEY}&units=metric")
-        resp    = requests.get(url, timeout=5).json()
-        lat     = resp["coord"]["lat"]
-        lon     = resp["coord"]["lon"]
-        tf      = TimezoneFinder()
-        tz_name = tf.timezone_at(lat=lat, lng=lon)
-        tz      = pytz.timezone(tz_name)
-        return datetime.now(tz), tz_name
-    except Exception:
-        return datetime.utcnow(), "UTC"
+        url = (
+            f"https://api.openweathermap.org/data/2.5/weather"
+            f"?q={city_name},{country_code}&appid={API_KEY}&units=metric"
+        )
 
+        resp = requests.get(url, timeout=5).json()
+
+        if "coord" not in resp:
+            return None  # prevents crash
+
+        lat = resp["coord"]["lat"]
+        return lat
+
+    except Exception as e:
+        return None
 
 def generate_smart_forecast(X_input_original, models, feature_cols,
                              start_hour, current_temp, city_name, country_code):
