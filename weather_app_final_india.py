@@ -415,6 +415,11 @@ def predict_india(city_name, country_code, india_m):
 
     row       = build_india_row(data)
     feat_cols = india_m["feature_cols"]
+    st.write("Feature columns loaded from feature_columns.pkl:")
+    st.write(india_m["feature_cols"])
+
+    st.write("Number of features:")
+    st.write(len(india_m["feature_cols"]))
     rt_df     = pd.DataFrame([row])
     for col in feat_cols:
         if col not in rt_df.columns:
