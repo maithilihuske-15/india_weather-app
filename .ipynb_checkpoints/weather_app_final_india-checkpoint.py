@@ -28,6 +28,7 @@ from streamlit_autorefresh import st_autorefresh
 
 random.seed(42)
 np.random.seed(42)
+
 API_KEY = st.secrets.get("OPENWEATHER_API_KEY", "")
 
 MODEL_DIR       = "saved_models"
@@ -79,7 +80,7 @@ def get_city_time(city_name, country_code):
         tz      = pytz.timezone(tz_name)
         return datetime.now(tz), tz_name
     except Exception:
-        return datetime.now(pytz.UTC), "UTC"
+        return datetime.utcnow(), "UTC"
 
 
 def generate_smart_forecast(X_input_original, models, feature_cols,
@@ -415,61 +416,18 @@ def predict_india(city_name, country_code, india_m):
 
     row       = build_india_row(data)
     feat_cols = india_m["feature_cols"]
-
-    st.write("Feature columns loaded from feature_columns.pkl:")
-    st.write(india_m["feature_cols"])
-
-    st.write("Number of features:")
-    st.write(len(india_m["feature_cols"]))
-
     rt_df     = pd.DataFrame([row])
     for col in feat_cols:
         if col not in rt_df.columns:
             rt_df[col] = 0.0
-    X_rt = rt_df[feat_cols].values
+    X_rt  = rt_df[feat_cols].values
+    X_sc  = india_m["scaler"].transform(X_rt)
 
-    X_sc = india_m["scaler"].transform(X_rt)
-
-    debug_df = pd.DataFrame({
-        "Feature": feat_cols,
-        "Before Scaling": X_rt[0],
-        "After Scaling": X_sc[0]
-    })
-
-    st.subheader("Debug - Feature Values")
-    st.dataframe(debug_df)
-# ===== DEBUG =====
-    import os
-
-    st.write("Current folder:", os.getcwd())
-
-    st.write("Feature row:")
-    st.write(rt_df.T)
-
-    st.write("Feature order:")
-    st.write(feat_cols)
-
-    st.write("Scaled values:")
-    st.write(X_sc)
-
-    p_xgb = india_m["xgboost"].predict(X_sc)
+    p_xgb  = india_m["xgboost"].predict(X_sc)
     p_lgbm = india_m["lgbm"].predict(X_sc)
-    p_rf = india_m["randomforest"].predict(X_sc)
-
-    st.write("XGBoost Prediction:", p_xgb)
-    st.write("LightGBM Prediction:", p_lgbm)
-    st.write("RandomForest Prediction:", p_rf)
-
-    meta = np.hstack([p_xgb, p_lgbm, p_rf])
-
-    st.write("Meta Input:")
-    st.write(meta)
-
-    pred = india_m["meta_learner"].predict(meta)[0]
-
-    st.write("Final Prediction:")  
-    st.write(pred)
-# ==================
+    p_rf   = india_m["randomforest"].predict(X_sc)
+    meta   = np.hstack([p_xgb, p_lgbm, p_rf])
+    pred   = india_m["meta_learner"].predict(meta)[0]
 
     current = {
         "temp":        data["main"]["temp"],
@@ -488,6 +446,7 @@ def predict_india(city_name, country_code, india_m):
         "air_pressure": round(float(pred[3]), 1),
     }
     return current, prediction, None
+
 
 def india_condition(avg_temp, rainfall, wind_speed):
     if rainfall > 5:                     return "Rainy",  "🌧️"
@@ -997,11 +956,7 @@ with col_title:
 with col_time:
     city_now_hdr, tz_name_hdr = get_city_time(city_name, country_code)
     short_tz           = tz_name_hdr.split("/")[-1].replace("_", " ")
-    offset = city_now_hdr.utcoffset()
-    if offset is None:
-        utc_offset_minutes = 0
-    else:
-        utc_offset_minutes = int(offset.total_seconds() / 60)
+    utc_offset_minutes = int(city_now_hdr.utcoffset().total_seconds() / 60)
     st.components.v1.html(f"""
     <div style="text-align:right;padding-top:8px;font-family:'Inter',sans-serif;">
         <div style="font-size:0.68rem;color:#475569;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;">
