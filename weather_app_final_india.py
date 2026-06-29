@@ -428,7 +428,7 @@ def predict_india(city_name, country_code, india_m):
     st.write("Current folder:", os.getcwd())
 
     st.write("Feature row:")
-    st.dataframe(rt_df)
+    st.write(rt_df.T)
 
     st.write("Feature order:")
     st.write(feat_cols)
