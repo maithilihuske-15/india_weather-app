@@ -32,7 +32,7 @@ np.random.seed(42)
 API_KEY = st.secrets.get("OPENWEATHER_API_KEY", "")
 
 MODEL_DIR       = "saved_models"
-INDIA_MODEL_DIR = "saved_models_india"
+INDIA_MODEL_DIR = "saved_models_india_i"
 
 # Set of city-display names that should use the India daily model
 INDIA_CITY_NAMES = {
